@@ -1,19 +1,17 @@
 module Lita
   module Handlers
     class Gitlab < Handler
-
-        config :default_room 
-        config :url, default: 'http://example.gitlab/'
-        config :group, default: 'group_name'
-      
+      config :default_room
+      config :url, default: 'http://example.gitlab/'
+      config :group, default: 'group_name'
 
       http.post '/lita/gitlab', :receive
 
-      def receive(request, response)
+      def receive(request, _response)
         json_body = request.params['payload'] || extract_json_from_request(request)
         data = parse_payload(json_body)
         data[:project] = request.params['project']
-        message =  format_message(data)
+        message = format_message(data)
         if message
           targets = request.params['targets'] || Lita.config.handlers.gitlab.default_room
           rooms = []
@@ -42,26 +40,26 @@ module Lita
         interpolate_message "system.#{data[:event_name]}", data
       rescue => e
 
-       Lita.logger.warn "Error formatting message: #{data.inspect}"
-       Lita.logger.warn e.backtrace 
+        Lita.logger.warn "Error formatting message: #{data.inspect}"
+        Lita.logger.warn e.backtrace
       end
 
       def web_message(data)
         case data[:object_kind]
-        when "push"
-          build_branch_message(data)        
-        when "tag_push"
-          "sorry we do not handle the tag_push event"
-        when "issue"
+        when 'push'
+          build_branch_message(data)
+        when 'tag_push'
+          'sorry we do not handle the tag_push event'
+        when 'issue'
           build_issue_message(data)
-        when "note"
-          "sorry we do not handle the note event"
-        when "merge_request"
+        when 'note'
+          'sorry we do not handle the note event'
+        when 'merge_request'
           build_merge_message(data)
-        when "add_to_branch"
-          build_branch_message(data)        
+        when 'add_to_branch'
+          build_branch_message(data)
         else
-          "sorry we do not handle the this unknown event"
+          'sorry we do not handle the this unknown event'
         end
       rescue => e
         Lita.logger.warn "Error formatting message: #{data.inspect}"
@@ -84,8 +82,8 @@ module Lita
       end
 
       def build_merge_message(data)
-        url = "#{Lita.config.handlers.gitlab.url}"
-        url += if data[:project] then
+        url = Lita.config.handlers.gitlab.url.to_s
+        url += if data[:project]
                  "#{Lita.config.handlers.gitlab.group}/#{data[:project]}/merge_requests/#{data[:object_attributes][:iid]}"
                else
                  "groups/#{Lita.config.handlers.gitlab.group}"
@@ -102,12 +100,11 @@ module Lita
       end
 
       def parse_payload(payload)
-        MultiJson.load(payload, :symbolize_keys => true)
+        MultiJson.load(payload, symbolize_keys: true)
       rescue MultiJson::LoadError => e
         Lita.logger.error("Could not parse JSON payload from Github: #{e.message}")
         return
       end
-
     end
 
     Lita.register_handler(Gitlab)

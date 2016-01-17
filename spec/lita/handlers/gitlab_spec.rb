@@ -1,7 +1,6 @@
 require 'spec_helper'
 
 describe Lita::Handlers::Gitlab, lita_handler: true do
-
   http_route_path = '/lita/gitlab'
 
   it 'registers with Lita' do
@@ -21,7 +20,7 @@ describe Lita::Handlers::Gitlab, lita_handler: true do
   let(:params) { {} }
   let(:targets) { '#baz' }
   let(:project) { 'test_project' }
-  let(:matchers) {
+  let(:matchers) do
     {
       new_team_member: 'John Smith has joined to the StoreCloud project',
       project_created: 'John Smith has created the StoreCloud project!',
@@ -30,7 +29,7 @@ describe Lita::Handlers::Gitlab, lita_handler: true do
       add_to_branch: "John Smith added 4 commits to branch '<http://localhost/diaspora|Diaspora>' in project test_project",
       merge_request_opened: 'New merge-request #1 en test_project: <http://example.gitlab/group_name/test_project/merge_requests/1|MS-Viewport>'
     }
-  }
+  end
 
   let(:room) { '#baz' }
 
@@ -39,11 +38,9 @@ describe Lita::Handlers::Gitlab, lita_handler: true do
       allow(params).to receive(:[]).with('targets').and_return(targets)
       allow(params).to receive(:[]).with('project').and_return(project)
       allow(Lita::Room).to receive(:find_by_name).and_return(room)
-
     end
 
     context 'with system hook' do
-
       context 'when new team member' do
         let(:new_team_member_payload) { fixture_file('system/new_team_member') }
 
@@ -92,7 +89,6 @@ describe Lita::Handlers::Gitlab, lita_handler: true do
     end
 
     context 'when web project hook' do
-
       context 'when issue event' do
         let(:issue_payload) { fixture_file('web/issue_opened') }
         before do

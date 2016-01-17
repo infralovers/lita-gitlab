@@ -3,13 +3,13 @@ Gem::Specification.new do |spec|
   spec.version       = '1.1.0'
   spec.authors       = ['Emilio Figueroa']
   spec.email         = ['emiliofigueroatorres@gmail.com']
-  spec.description   = %q{A Lita handler that will display GitLab messages in the channel}
-  spec.summary       = %q{A Lita handler that will display GitLab messages in the channel}
+  spec.description   = 'A Lita handler that will display GitLab messages in the channel'
+  spec.summary       = 'A Lita handler that will display GitLab messages in the channel'
   spec.homepage      = 'https://github.com/milo-ft/lita-gitlab'
   spec.license       = 'MIT'
   spec.metadata      = { 'lita_plugin_type' => 'handler' }
 
-  spec.files         = `git ls-files`.split($/)
+  spec.files         = `git ls-files`.split($INPUT_RECORD_SEPARATOR)
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
@@ -22,4 +22,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'shoulda', '~> 3.5.0'
   spec.add_development_dependency 'simplecov'
   spec.add_development_dependency 'coveralls'
+  spec.add_development_dependency 'rubocop'
 end
