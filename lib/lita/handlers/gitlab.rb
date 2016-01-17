@@ -40,20 +40,33 @@ module Lita
 
       def system_message(data)
         interpolate_message "system.#{data[:event_name]}", data
-      rescue
-        Lita.logger.warn "Error formatting message: #{data.inspect}"
+      rescue => e
+
+       Lita.logger.warn "Error formatting message: #{data.inspect}"
+       Lita.logger.warn e.backtrace 
       end
 
       def web_message(data)
-        if data.key? :object_kind
-          # Merge has target branch
-          (data[:object_attributes].key? :target_branch) ? build_merge_message(data) : build_issue_message(data)
+        case data[:object_kind]
+        when "push"
+          build_branch_message(data)        
+        when "tag_push"
+          "sorry we do not handle the tag_push event"
+        when "issue"
+          build_issue_message(data)
+        when "note"
+          "sorry we do not handle the note event"
+        when "merge_request"
+          build_merge_message(data)
+        when "add_to_branch"
+          build_branch_message(data)        
         else
-          # Push has no object kind
-          build_branch_message(data)
+          "sorry we do not handle the this unknown event"
         end
-      rescue
+      rescue => e
         Lita.logger.warn "Error formatting message: #{data.inspect}"
+        Lita.logger.warn e.backtrace
+        Lita.logger.warn e.inspect
       end
 
       def build_issue_message(data)
