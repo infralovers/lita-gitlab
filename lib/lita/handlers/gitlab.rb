@@ -2,19 +2,18 @@ module Lita
   module Handlers
     class Gitlab < Handler
 
-      def self.default_config(config)
-        config.default_room = '#general'
-        config.url = 'http://example.gitlab/'
-        config.group = 'group_name'
-      end
+        config :default_room 
+        config :url, default: 'http://example.gitlab/'
+        config :group, default: 'group_name'
+      
 
       http.post '/lita/gitlab', :receive
 
       def receive(request, response)
         json_body = request.params['payload'] || extract_json_from_request(request)
-        data = symbolize parse_payload(json_body)
+        data = parse_payload(json_body)
         data[:project] = request.params['project']
-        message = format_message(data)
+        message =  format_message(data)
         if message
           targets = request.params['targets'] || Lita.config.handlers.gitlab.default_room
           rooms = []
@@ -22,7 +21,7 @@ module Lita
             rooms << param_target
           end
           rooms.each do |room|
-            target = Source.new(room: room)
+            target = Source.new(room: Lita::Room.find_by_name(room))
             robot.send_message(target, message)
           end
         end
@@ -90,16 +89,10 @@ module Lita
       end
 
       def parse_payload(payload)
-        MultiJson.load(payload)
+        MultiJson.load(payload, :symbolize_keys => true)
       rescue MultiJson::LoadError => e
         Lita.logger.error("Could not parse JSON payload from Github: #{e.message}")
         return
-      end
-
-      def symbolize(obj)
-        return obj.inject({}){|memo,(k,v)| memo[k.to_sym] =  symbolize(v); memo} if obj.is_a? Hash
-        return obj.inject([]){|memo,v    | memo           << symbolize(v); memo} if obj.is_a? Array
-        return obj
       end
 
     end

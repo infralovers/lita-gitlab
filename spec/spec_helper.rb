@@ -3,6 +3,8 @@ require 'coveralls'
 require 'lita-gitlab'
 require 'lita/rspec'
 
+Lita.version_3_compatibility_mode = false
+
 SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter[
   SimpleCov::Formatter::HTMLFormatter,
   Coveralls::SimpleCov::Formatter

@@ -9,7 +9,7 @@ describe Lita::Handlers::Gitlab, lita_handler: true do
   end
 
   it "registers HTTP route POST #{http_route_path} to :receive" do
-    routes_http(:post, http_route_path).to(:receive)
+    is_expected.to route_http(:post, http_route_path).to(:receive)
   end
 
   let(:request) do
@@ -32,16 +32,21 @@ describe Lita::Handlers::Gitlab, lita_handler: true do
     }
   }
 
+  let(:room) { '#baz' }
+
   describe '#receive' do
     before :each do
       allow(params).to receive(:[]).with('targets').and_return(targets)
       allow(params).to receive(:[]).with('project').and_return(project)
+      allow(Lita::Room).to receive(:find_by_name).and_return(room)
+
     end
 
     context 'with system hook' do
 
       context 'when new team member' do
         let(:new_team_member_payload) { fixture_file('system/new_team_member') }
+
         before do
           allow(params).to receive(:[]).with('payload').and_return(new_team_member_payload)
         end
