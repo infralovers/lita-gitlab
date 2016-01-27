@@ -7,27 +7,100 @@ module Lita
 
       http.post '/lita/gitlab', :receive
 
-      def receive(request, _response)
-        json_body = request.params['payload'] || extract_json_from_request(request)
+      def receive(request, response)
+        #byebug
+        @request = request
+        json_body = @request.body.string
         data = parse_payload(json_body)
         data[:project] = request.params['project']
-        message = format_message(data)
-        if message
-          targets = request.params['targets'] || Lita.config.handlers.gitlab.default_room
-          rooms = []
-          targets.split(',').each do |param_target|
-            rooms << param_target
-          end
-          rooms.each do |room|
-            target = Source.new(room: Lita::Room.find_by_name(room))
-            robot.send_message(target, message)
-          end
-        end
+
+        dispatch_trigger(request, json_body, data)
+        send_message_to_rooms(format_message(data), target_rooms(request.params['targets']))
+        response.write("ok")
       end
 
       private
+      
+      def jenkins_connection
+        Faraday.new(Lita.config.handlers.jenkins.url)
+      end
 
-      def extract_json_from_request(request)
+      def target_rooms(targets)
+        targets ||= Lita.config.handlers.gitlab.default_room
+        rooms = []
+        targets.split(',').each do |param_target|
+          rooms << param_target
+        end
+      end
+
+      def send_message_to_rooms(message, rooms)
+        rooms.each do |room|
+          target = Source.new(room: Lita::Room.find_by_name(room))
+          robot.send_message(target, message)
+        end if message
+      end
+
+      # def job_names
+      #   Lita::Handlers::Jenkins.jobs.map { |job| job['name'] }
+      # end
+
+      # def job_details(job_name)
+      #   HTTParty.get("#{SERVER}/job/#{job_name}/api/json")
+      # end
+
+      # def build_details(job_name, build_number)
+      #   HTTParty.get("#{SERVER}/job/#{job_name}/#{build_number}/api/json")
+      # end
+
+      def choose_job(content)
+        chosen_job = content[:repository][:name]
+
+        # Is it a merge request?
+        if content[:object_kind].include? 'merge_request'
+          # If so, check it's title for a [review] tag and rename the job
+          chosen_job << '-review' if content[:object_attributes][:title].downcase.include? '[review]'
+        end
+
+        chosen_job
+      end
+
+      def dispatch_trigger(request, raw_body, data)
+        content = raw_body
+        #push = JSON.parse(content)
+        event = request.env['HTTP_X_GITLAB_EVENT']
+
+        # make sure we do not trigger a build with a branch that was just deleted
+        deleted = data[:deleted]
+
+        if event.include? 'Note Hook'
+          Lita.logger.warn data[:object_attributes][:note]
+        elsif deleted
+          Lita.logger.warn "branch #{branch} was deleted, not triggering build"
+        else
+          job = choose_job(data)
+          Lita.logger.warn "Triggering #{job}"
+
+          #if job_names.include? job
+            trigger_job(job, event, content)
+          #lse
+          #  Lita.logger.warn "no such job #{job}"
+          #end
+        end        
+      end
+
+      def trigger_job(job, event, body)
+        http_resp = jenkins_connection.post("/project/#{job}") do |req|
+          req.headers = {
+            'Content-Type' => 'application/json',
+            'X-Gitlab-Event' => event
+          }
+          req.body = body
+        end
+        Lita.logger.warn http_resp.inspect
+        http_resp
+      end
+
+      def request_body(request)
         request.body.rewind
         request.body.read
       end
@@ -59,7 +132,7 @@ module Lita
         when 'add_to_branch'
           build_branch_message(data)
         else
-          'sorry we do not handle the this unknown event'
+          'sorry we do not handle this unknown event'
         end
       rescue => e
         Lita.logger.warn "Error formatting message: #{data.inspect}"

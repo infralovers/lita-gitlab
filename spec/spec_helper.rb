@@ -1,4 +1,5 @@
 require 'simplecov'
+require 'byebug'
 require 'coveralls'
 require 'lita-gitlab'
 require 'lita/rspec'

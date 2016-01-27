@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name          = 'lita-gitlab'
-  spec.version       = '1.1.0'
+  spec.version       = '1.1.1'
   spec.authors       = ['Emilio Figueroa']
   spec.email         = ['emiliofigueroatorres@gmail.com']
   spec.description   = 'A Lita handler that will display GitLab messages in the channel'
@@ -15,6 +15,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_runtime_dependency 'lita', '~> 4.7'
+  spec.add_runtime_dependency 'lita-jenkins'
 
   spec.add_development_dependency 'bundler', '~> 1.10', '>= 1.10.6'
   spec.add_development_dependency 'rake'
@@ -23,4 +24,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'simplecov'
   spec.add_development_dependency 'coveralls'
   spec.add_development_dependency 'rubocop'
+  spec.add_development_dependency 'rack-test'
+  spec.add_development_dependency 'byebug'
 end
