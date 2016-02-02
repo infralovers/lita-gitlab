@@ -8,7 +8,7 @@ module Lita
       http.post '/lita/gitlab', :receive
 
       def receive(request, response)
-        #byebug
+        # byebug
         @request = request
         json_body = @request.body.string
         data = parse_payload(json_body)
@@ -16,11 +16,11 @@ module Lita
 
         dispatch_trigger(request, json_body, data)
         send_message_to_rooms(format_message(data), target_rooms(request.params['targets']))
-        response.write("ok")
+        response.write('ok')
       end
 
       private
-      
+
       def jenkins_connection
         Faraday.new(Lita.config.handlers.jenkins.url)
       end
@@ -66,7 +66,7 @@ module Lita
 
       def dispatch_trigger(request, raw_body, data)
         content = raw_body
-        #push = JSON.parse(content)
+        # push = JSON.parse(content)
         event = request.env['HTTP_X_GITLAB_EVENT']
 
         # make sure we do not trigger a build with a branch that was just deleted
@@ -80,12 +80,12 @@ module Lita
           job = choose_job(data)
           Lita.logger.warn "Triggering #{job}"
 
-          #if job_names.include? job
-            trigger_job(job, event, content)
-          #lse
+          # if job_names.include? job
+          trigger_job(job, event, content)
+          # lse
           #  Lita.logger.warn "no such job #{job}"
-          #end
-        end        
+          # end
+        end
       end
 
       def trigger_job(job, event, body)

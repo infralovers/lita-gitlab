@@ -1,5 +1,5 @@
 require 'spec_helper'
-require "lita/handlers/jenkins"
+require 'lita/handlers/jenkins'
 
 module Lita
   module RSpec
@@ -7,20 +7,19 @@ module Lita
     module Handler
       def jenkins_connection
         @connection ||= Faraday.new do |builder|
-          #builder.response :json
+          # builder.response :json
 
           builder.adapter :test do |stubs|
             @stubs = stubs
             yield(stubs)
           end
         end
-      end 
+      end
     end
   end
 end
 
 describe Lita::Handlers::Gitlab, lita_handler: true, additional_lita_handlers: Lita::Handlers::Jenkins do
-
   before do
     Lita.config.handlers.jenkins.url = 'http://jenkins.local:8080'
     Lita.config.handlers.gitlab.default_room = '#baz'
@@ -35,7 +34,7 @@ describe Lita::Handlers::Gitlab, lita_handler: true, additional_lita_handlers: L
   it "registers HTTP route POST #{http_route_path} to :receive" do
     is_expected.to route_http(:post, http_route_path).to(:receive)
   end
-  
+
   let(:response) { Rack::Response.new }
   let(:params) { {} }
   let(:targets) { '#baz' }
@@ -107,43 +106,43 @@ describe Lita::Handlers::Gitlab, lita_handler: true, additional_lita_handlers: L
     # end
 
     context 'when web project hook' do
-    #   context 'when issue event' do
-    #     let(:issue_payload) { fixture_file('web/issue_hook') }
-    #     before do
-    #       allow(params).to receive(:[]).with('payload').and_return(issue_payload)
-    #     end
+      #   context 'when issue event' do
+      #     let(:issue_payload) { fixture_file('web/issue_hook') }
+      #     before do
+      #       allow(params).to receive(:[]).with('payload').and_return(issue_payload)
+      #     end
 
-    #     it 'notifies to the applicable rooms' do
-    #       expect(robot).to receive(:send_message) do |target, message|
-    #         expect(target.room).to eq('#baz')
-    #         expect(message).to eq matchers[:issue_opened]
-    #       end
-    #       subject.receive(request, response)
-    #     end
-    #   end
+      #     it 'notifies to the applicable rooms' do
+      #       expect(robot).to receive(:send_message) do |target, message|
+      #         expect(target.room).to eq('#baz')
+      #         expect(message).to eq matchers[:issue_opened]
+      #       end
+      #       subject.receive(request, response)
+      #     end
+      #   end
 
-    #   context 'when push event' do
-    #     let(:push_payload) { fixture_file('web/add_to_branch') }
-    #     before do
-    #       allow(params).to receive(:[]).with('payload').and_return(push_payload)
-    #     end
+      #   context 'when push event' do
+      #     let(:push_payload) { fixture_file('web/add_to_branch') }
+      #     before do
+      #       allow(params).to receive(:[]).with('payload').and_return(push_payload)
+      #     end
 
-    #     it 'notifies to the applicable rooms' do
-    #       expect(robot).to receive(:send_message) do |target, message|
-    #         expect(target.room).to eq('#baz')
-    #         expect(message).to eq matchers[:add_to_branch]
-    #       end
-    #       subject.receive(request, response)
-    #     end
-    #   end
+      #     it 'notifies to the applicable rooms' do
+      #       expect(robot).to receive(:send_message) do |target, message|
+      #         expect(target.room).to eq('#baz')
+      #         expect(message).to eq matchers[:add_to_branch]
+      #       end
+      #       subject.receive(request, response)
+      #     end
+      #   end
 
       context 'when merge request event' do
         let(:merge_request_created) { fixture_file('web/merge_request_created') }
         before do
           jenkins_connection do |stubs|
-            stubs.post('/project/Diaspora', merge_request_created ) { [200, {}, nil] }
+            stubs.post('/project/Diaspora', merge_request_created) { [200, {}, nil] }
           end
-          expect_any_instance_of(Lita::Handlers::Gitlab).to receive(:trigger_job).with('Diaspora',any_args).and_call_original
+          expect_any_instance_of(Lita::Handlers::Gitlab).to receive(:trigger_job).with('Diaspora', any_args).and_call_original
           allow_any_instance_of(Lita::Handlers::Gitlab).to receive(:jenkins_connection).and_return(jenkins_connection)
         end
 
@@ -165,7 +164,7 @@ describe Lita::Handlers::Gitlab, lita_handler: true, additional_lita_handlers: L
         let(:merge_request_payload_with_review_in_title) { fixture_file('web/merge_request_created_with_review_in_title') }
         before do
           jenkins_connection do |stubs|
-            stubs.post('/project/Diaspora-review', merge_request_payload_with_review_in_title ) { [200, {}, nil] }
+            stubs.post('/project/Diaspora-review', merge_request_payload_with_review_in_title) { [200, {}, nil] }
           end
           expect_any_instance_of(Lita::Handlers::Gitlab).to receive(:trigger_job).with('Diaspora-review', any_args).and_call_original
           allow_any_instance_of(Lita::Handlers::Gitlab).to receive(:jenkins_connection).and_return(jenkins_connection)
