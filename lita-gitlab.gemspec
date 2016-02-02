@@ -1,8 +1,8 @@
 Gem::Specification.new do |spec|
   spec.name          = 'lita-gitlab'
   spec.version       = '1.1.1'
-  spec.authors       = ['Emilio Figueroa']
-  spec.email         = ['emiliofigueroatorres@gmail.com']
+  spec.authors       = ['Edmund Haselwanter', 'Emilio Figueroa']
+  spec.email         = ['team@infralovers.com', 'emiliofigueroatorres@gmail.com']
   spec.description   = 'A Lita handler that will display GitLab messages in the channel'
   spec.summary       = 'A Lita handler that will display GitLab messages in the channel'
   spec.homepage      = 'https://github.com/milo-ft/lita-gitlab'
