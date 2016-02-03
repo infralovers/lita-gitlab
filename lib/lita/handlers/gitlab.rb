@@ -37,7 +37,7 @@ module Lita
       def builds(response)
         url = nil
         response.message.source
-        job_name = "#{config.channel_to_project_map[response.message.source.room_object.name]}-review"
+        job_name = "#{config.channel_to_project_map[response.message.source.room_object.name]}-test"
         text = render_template('builds', data: all_builds_with_artifact(job_name))
 
         case robot.config.robot.adapter
@@ -60,7 +60,7 @@ module Lita
         artifact_id = response.args[1][2..-1]
 
         deploy_job_name = "#{config.channel_to_project_map[response.message.source.room_object.name]}-deploy"
-        build_job_name = "#{config.channel_to_project_map[response.message.source.room_object.name]}-review"
+        build_job_name = "#{config.channel_to_project_map[response.message.source.room_object.name]}-test"
  
         data = review_build(build_job_name, deploy_job_name, artifact_id)
         text = render_template('review', data: data)
