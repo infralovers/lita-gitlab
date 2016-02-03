@@ -5,3 +5,8 @@ Lita.load_locales Dir[File.expand_path(
 )]
 
 require 'lita/handlers/gitlab'
+require 'lita/handlers/gitlab_helper'
+
+Lita::Handlers::Gitlab.template_root File.expand_path(
+  File.join('..', '..', 'templates'), __FILE__
+)
