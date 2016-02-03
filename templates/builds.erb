@@ -1,0 +1,7 @@
+Artifact builds: 
+
+<% @data.each do |build| %>
+  <%= "[b-#{build['number']}] : #{build['description']}" %>
+<% end %>
+
+use `artifact review <build-identifier>` were `<build-identifier>` is the string in `[]`

@@ -1,23 +1,4 @@
 require 'spec_helper'
-require 'lita/handlers/jenkins'
-
-module Lita
-  module RSpec
-    # Extras for +RSpec+ to facilitate testing Lita handlers.
-    module Handler
-      def jenkins_connection
-        @connection ||= Faraday.new do |builder|
-          # builder.response :json
-
-          builder.adapter :test do |stubs|
-            @stubs = stubs
-            yield(stubs)
-          end
-        end
-      end
-    end
-  end
-end
 
 describe Lita::Handlers::Gitlab, lita_handler: true, additional_lita_handlers: Lita::Handlers::Jenkins do
   before do

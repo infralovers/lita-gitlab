@@ -1,10 +1,6 @@
 require 'simplecov'
 require 'byebug'
 require 'coveralls'
-require 'lita-gitlab'
-require 'lita/rspec'
-
-Lita.version_3_compatibility_mode = false
 
 SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new [
   SimpleCov::Formatter::HTMLFormatter,
@@ -12,6 +8,31 @@ SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new [
 ]
 
 SimpleCov.start { add_filter '/spec/' }
+
+require 'lita-gitlab'
+require 'lita/rspec'
+require 'lita-slack'
+require 'lita-jenkins'
+
+module Lita
+  module RSpec
+    # Extras for +RSpec+ to facilitate testing Lita handlers.
+    module Handler
+      def jenkins_connection
+        @connection ||= Faraday.new do |builder|
+          # builder.response :json
+
+          builder.adapter :test do |stubs|
+            @stubs = stubs
+            yield(stubs)
+          end
+        end
+      end
+    end
+  end
+end
+
+Lita.version_3_compatibility_mode = false
 
 def fixture_file(filename)
   return '' if filename == ''

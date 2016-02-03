@@ -8,6 +8,9 @@ module Lita
       config :url, default: 'http://example.gitlab/'
       config :group, default: 'group_name'
       config :debug_channel, default: 'cicd-debug'
+      config :channel_to_project_map, default: { 'shell' => 'shell' }
+
+      BUILD_REGEX = /[\w\-\.\+\_]+/
 
       http.post '/lita/gitlab', :receive
 
@@ -19,7 +22,77 @@ module Lita
         response.write('ok')
       end
 
+      route(/^artifact?\s+builds?/i,
+            :builds,
+            command: true,
+            help: { 'artifact builds' => 'list artifact repositories' }
+           )
+
+      route(/^artifact?\s+review\s+#{BUILD_REGEX.source}?/i,
+            :review,
+            command: true,
+            help: { 'artifact builds' => 'review artifact' }
+           )
+
+      def builds(response)
+        url = nil
+        response.message.source
+        job_name = "#{config.channel_to_project_map[response.message.source.room_object.name]}-review"
+        text = render_template('builds', data: all_builds_with_artifact(job_name))
+
+        case robot.config.robot.adapter
+        when :slack
+          title = 'Artifact builds'
+          reply_with_attachment(response, url, title: title, fallback: text)
+        else
+          response.reply text
+        end
+
+        response.reply
+      end
+
+      def all_builds_with_artifact(job_name)
+        all_builds = jenkins_client.job.get_builds(job_name, tree: 'builds[number,artifacts[*],description,changeSet[*[*]]]')
+        all_builds.select { |build| !build['artifacts'].empty? }
+      end
+
+      def review(response)
+        artifact_id = response.args[1][2..-1]
+
+        deploy_job_name = "#{config.channel_to_project_map[response.message.source.room_object.name]}-deploy"
+        build_job_name = "#{config.channel_to_project_map[response.message.source.room_object.name]}-review"
+ 
+        data = review_build(build_job_name, deploy_job_name, artifact_id)
+        text = render_template('review', data: data)
+        url = data[:deploy['number']]
+
+        case robot.config.robot.adapter
+        when :slack
+          title = 'Click to Review Artifact'
+          reply_with_attachment(response, url, title: title, fallback: text)
+        else
+          response.reply text
+        end
+
+        response.reply
+      end
+
+      def review_build(build_job_name, deploy_job_name, artifact_id)
+        deploy_nr = jenkins_client.job.build(deploy_job_name,
+                                             { 'ARTIFACT_BUILD_NUMBER' => "<SpecificBuildSelector><buildNumber>#{artifact_id}</buildNumber></SpecificBuildSelector>" },
+                                             'build_start_timeout' => 120
+                                            )
+        build_data = jenkins_client.job.get_build_details(build_job_name, artifact_id)
+        deploy_data = jenkins_client.job.get_build_details(deploy_job_name, deploy_nr)
+
+        { build: build_data, deploy: deploy_data }
+      end
+
       private
+
+      def jenkins_client
+        @jenkins_client ||= JenkinsApi::Client.new(server_url: Lita.config.handlers.jenkins.url)
+      end
 
       def jenkins_connection
         Faraday.new(Lita.config.handlers.jenkins.url)
@@ -127,6 +200,11 @@ module Lita
         data[:object_attributes][:project] = data[:project]
         data[:object_attributes][:link] = "<#{data[:repository][:homepage]}|#{data[:object_attributes][:title]}>"
         t "web.#{data[:object_kind]}.#{data[:object_attributes][:state]}", data[:object_attributes]
+      end
+
+      def reply_with_attachment(response, *attachment_params)
+        target = response.message.source.room_object || response.message.source.user
+        robot.chat_service.send_attachment(target, Lita::Adapters::Slack::Attachment.new(*attachment_params))
       end
     end
     Lita.register_handler(Gitlab)
