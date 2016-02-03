@@ -1,1 +1,7 @@
-<%= JSON.pretty_generate @data %>
+Wait about 45 secs and have a look at <%= @deploy_url %>
+
+Description: <%= @data[:build]['description'] %>
+Build: <%= @data[:build]['url'] %>
+Deployment: <%= @data[:deploy]['url'] %>
+
+Feedback welcome (@ehaselwanter)

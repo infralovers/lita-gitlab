@@ -9,6 +9,7 @@ module Lita
       config :group, default: 'group_name'
       config :debug_channel, default: 'cicd-debug'
       config :channel_to_project_map, default: { 'shell' => 'shell' }
+      config :deploy_target_url, default: 'http://target.local'
 
       BUILD_REGEX = /[\w\-\.\+\_]+/
 
@@ -63,8 +64,8 @@ module Lita
         build_job_name = "#{config.channel_to_project_map[response.message.source.room_object.name]}-test"
  
         data = review_build(build_job_name, deploy_job_name, artifact_id)
-        text = render_template('review', data: data)
-        url = data[:deploy['number']]
+        url = "#{config.deploy_target_url}#{deploy_job_name}-#{data[:deploy]['number']}/index.html"
+        text = render_template('review', data: data, deploy_url: url)
 
         case robot.config.robot.adapter
         when :slack
