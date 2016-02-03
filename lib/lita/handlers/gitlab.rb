@@ -1,21 +1,21 @@
+require 'jenkins_api_client'
+
 module Lita
   module Handlers
+    # The Main Handler Class
     class Gitlab < Handler
       config :default_room
       config :url, default: 'http://example.gitlab/'
       config :group, default: 'group_name'
+      config :debug_channel, default: 'cicd-debug'
 
       http.post '/lita/gitlab', :receive
 
       def receive(request, response)
         # byebug
         @request = request
-        json_body = @request.body.string
-        data = parse_payload(json_body)
-        data[:project] = request.params['project']
-
-        dispatch_trigger(request, json_body, data)
-        send_message_to_rooms(format_message(data), target_rooms(request.params['targets']))
+        dispatch_trigger(request)
+        send_message_to_rooms(format_message(GitlabHelper.parse_data(request)), GitlabHelper.target_rooms(request.params['targets']))
         response.write('ok')
       end
 
@@ -23,14 +23,6 @@ module Lita
 
       def jenkins_connection
         Faraday.new(Lita.config.handlers.jenkins.url)
-      end
-
-      def target_rooms(targets)
-        targets ||= Lita.config.handlers.gitlab.default_room
-        rooms = []
-        targets.split(',').each do |param_target|
-          rooms << param_target
-        end
       end
 
       def send_message_to_rooms(message, rooms)
@@ -52,23 +44,10 @@ module Lita
       #   HTTParty.get("#{SERVER}/job/#{job_name}/#{build_number}/api/json")
       # end
 
-      def choose_job(content)
-        chosen_job = content[:repository][:name]
-
-        # Is it a merge request?
-        if content[:object_kind].include? 'merge_request'
-          # If so, check it's title for a [review] tag and rename the job
-          chosen_job << '-review' if content[:object_attributes][:title].downcase.include? '[review]'
-        end
-
-        chosen_job
-      end
-
-      def dispatch_trigger(request, raw_body, data)
-        content = raw_body
-        # push = JSON.parse(content)
+      def dispatch_trigger(request)
+        content = request.body.string
         event = request.env['HTTP_X_GITLAB_EVENT']
-
+        data = GitlabHelper.parse_data(request)
         # make sure we do not trigger a build with a branch that was just deleted
         deleted = data[:deleted]
 
@@ -77,7 +56,7 @@ module Lita
         elsif deleted
           Lita.logger.warn "branch #{branch} was deleted, not triggering build"
         else
-          job = choose_job(data)
+          job = GitlabHelper.choose_job(data)
           Lita.logger.warn "Triggering #{job}"
 
           # if job_names.include? job
@@ -98,11 +77,6 @@ module Lita
         end
         Lita.logger.warn http_resp.inspect
         http_resp
-      end
-
-      def request_body(request)
-        request.body.rewind
-        request.body.read
       end
 
       def format_message(data)
@@ -141,45 +115,20 @@ module Lita
       end
 
       def build_issue_message(data)
-        interpolate_message "web.#{data[:object_kind]}.#{data[:object_attributes][:state]}", data[:object_attributes]
+        t "web.#{data[:object_kind]}.#{data[:object_attributes][:state]}", data[:object_attributes]
       end
 
       def build_branch_message(data)
-        branch = data[:ref].split('/').drop(2).join('/')
         data[:link] = "<#{data[:repository][:homepage]}|#{data[:repository][:name]}>"
-        if data[:before] =~ /^0+$/
-          interpolate_message 'web.push.new_branch', data
-        else
-          interpolate_message 'web.push.add_to_branch', data
-        end
+        data[:before] =~ /^0+$/ ? t('web.push.new_branch', data) : t('web.push.add_to_branch', data)
       end
 
       def build_merge_message(data)
-        url = Lita.config.handlers.gitlab.url.to_s
-        url += if data[:project]
-                 "#{Lita.config.handlers.gitlab.group}/#{data[:project]}/merge_requests/#{data[:object_attributes][:iid]}"
-               else
-                 "groups/#{Lita.config.handlers.gitlab.group}"
-               end
         data[:object_attributes][:project] = data[:project]
-        data[:object_attributes][:link] = "<#{url}|#{data[:object_attributes][:title]}>"
-        interpolate_message "web.#{data[:object_kind]}.#{data[:object_attributes][:state]}", data[:object_attributes]
-      end
-
-      # General methods
-
-      def interpolate_message(key, data)
-        t(key) % data
-      end
-
-      def parse_payload(payload)
-        MultiJson.load(payload, symbolize_keys: true)
-      rescue MultiJson::LoadError => e
-        Lita.logger.error("Could not parse JSON payload from Github: #{e.message}")
-        return
+        data[:object_attributes][:link] = "<#{data[:repository][:homepage]}|#{data[:object_attributes][:title]}>"
+        t "web.#{data[:object_kind]}.#{data[:object_attributes][:state]}", data[:object_attributes]
       end
     end
-
     Lita.register_handler(Gitlab)
   end
 end
