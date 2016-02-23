@@ -1,26 +1,39 @@
 require 'jenkins_api_client'
+require 'gitlab'
 
 module Lita
   module Handlers
     # The Main Handler Class
     class Gitlab < Handler
+      config :token
       config :default_room
       config :url, default: 'http://example.gitlab/'
+      config :external_lita_endpoint, default: 'http://example.lita/'
       config :group, default: 'group_name'
       config :debug_channel, default: 'cicd-debug'
       config :channel_to_project_map, default: { 'shell' => 'shell' }
       config :deploy_target_url, default: 'http://target.local'
 
       BUILD_REGEX = /[\w\-\.\+\_]+/
+      GITLAB_HANDLER_PATH = '/lita/gitlab'
 
-      http.post '/lita/gitlab', :receive
+      http.post GITLAB_HANDLER_PATH, :receive
 
-      def receive(request, response)
+      on :merge_request, :jenkins_build
+
+      def jenkins_build(payload)
+        jenkins_client.job.build(payload[:job_name], payload[:job_params])
+      end
+
+      def receive(request, _response)
         # byebug
         @request = request
-        dispatch_trigger(request)
-        send_message_to_rooms(format_message(GitlabHelper.parse_data(request)), GitlabHelper.target_rooms(request.params['targets']))
-        response.write('ok')
+        Lita.logger.warn request.body.string
+        targets = (GitlabHelper.target_rooms(request.params['targets']) << config.debug_channel).uniq
+        #targets = [config.debug_channel]
+        dispatch_trigger(request, targets: targets)
+        # send_message_to_rooms(format_message(GitlabHelper.parse_data(request)), targets)
+        # response.write('ok')
       end
 
       route(/^artifact?\s+builds?/i,
@@ -39,17 +52,10 @@ module Lita
         url = nil
         response.message.source
         job_name = "#{config.channel_to_project_map[response.message.source.room_object.name]}-test"
+        title = 'Artifact builds'
         text = render_template('builds', data: all_builds_with_artifact(job_name))
 
-        case robot.config.robot.adapter
-        when :slack
-          title = 'Artifact builds'
-          reply_with_attachment(response, url, title: title, fallback: text)
-        else
-          response.reply text
-        end
-
-        response.reply
+        reply_to_chat(response, title, text, url)
       end
 
       def all_builds_with_artifact(job_name)
@@ -62,20 +68,12 @@ module Lita
 
         deploy_job_name = "#{config.channel_to_project_map[response.message.source.room_object.name]}-deploy"
         build_job_name = "#{config.channel_to_project_map[response.message.source.room_object.name]}-test"
- 
+
         data = review_build(build_job_name, deploy_job_name, artifact_id)
         url = "#{config.deploy_target_url}#{deploy_job_name}-#{data[:deploy]['number']}/index.html"
         text = render_template('review', data: data, deploy_url: url)
 
-        case robot.config.robot.adapter
-        when :slack
-          title = 'Click to Review Artifact'
-          reply_with_attachment(response, url, title: title, fallback: text)
-        else
-          response.reply text
-        end
-
-        response.reply
+        reply_to_chat(response, title, text, url)
       end
 
       def review_build(build_job_name, deploy_job_name, artifact_id)
@@ -90,6 +88,10 @@ module Lita
       end
 
       private
+
+      def gitlab_client
+        @gitlab ||= ::Gitlab.client(endpoint: "#{config.url}api/v3", private_token: config.token)
+      end
 
       def jenkins_client
         @jenkins_client ||= JenkinsApi::Client.new(server_url: Lita.config.handlers.jenkins.url)
@@ -106,38 +108,36 @@ module Lita
         end if message
       end
 
-      # def job_names
-      #   Lita::Handlers::Jenkins.jobs.map { |job| job['name'] }
-      # end
-
-      # def job_details(job_name)
-      #   HTTParty.get("#{SERVER}/job/#{job_name}/api/json")
-      # end
-
-      # def build_details(job_name, build_number)
-      #   HTTParty.get("#{SERVER}/job/#{job_name}/#{build_number}/api/json")
-      # end
-
-      def dispatch_trigger(request)
+      def dispatch_trigger(request, params)
         content = request.body.string
         event = request.env['HTTP_X_GITLAB_EVENT']
         data = GitlabHelper.parse_data(request)
-        # make sure we do not trigger a build with a branch that was just deleted
-        deleted = data[:deleted]
 
-        if event.include? 'Note Hook'
-          Lita.logger.warn data[:object_attributes][:note]
-        elsif deleted
-          Lita.logger.warn "branch #{branch} was deleted, not triggering build"
+        case data[:object_kind]
+        when 'merge_request'
+          if data[:object_attributes][:state] =~ /open/
+            if !data[:object_attributes][:work_in_progress] || data[:object_attributes][:title].downcase.include?('[review]')
+              data[:job_name] = GitlabHelper.choose_job(data)
+              data[:job_params] = GitlabHelper.build_merge_request_data(data)
+              send_message_to_rooms("Preparing to deploy *#{data[:object_attributes][:source_branch]}* of MR: #{data[:object_attributes][:url]}", params[:targets])
+              robot.trigger(:merge_request, data)
+            else
+              send_message_to_rooms("== DEBUG ==> Skipping review for MR '#{data[:object_attributes][:title]}' (wip: #{data[:object_attributes][:work_in_progress]})", [config.debug_channel])  
+            end
+          end
+          send_message_to_rooms("== DEBUG ==> handled merge_request for #{data.inspect}\n\n", [config.debug_channel])
+        when 'jenkins_trigger'
+          send_message_to_rooms("== DEBUG ==> handled jenkins_trigger for #{data.inspect}\n\n", [config.debug_channel])
+          message = "#{data[:object_attributes][:message]}"
+          gitlab_client.create_merge_request_note(data[:object_attributes][:gitlabTargetProjectId], 
+                                                  data[:object_attributes][:gitlabMergeRequestId], 
+                                                  message
+                                                  )
+          send_message_to_rooms(message , params[:targets])
+
         else
-          job = GitlabHelper.choose_job(data)
-          Lita.logger.warn "Triggering #{job}"
-
-          # if job_names.include? job
-          trigger_job(job, event, content)
-          # lse
-          #  Lita.logger.warn "no such job #{job}"
-          # end
+          send_message_to_rooms("== DEBUG ==> Doing nothing about #{data.inspect}]\n\n", [config.debug_channel])
+          Lita.logger.warn "Doing nothing about #{data.inspect}"
         end
       end
 
@@ -206,6 +206,17 @@ module Lita
       def reply_with_attachment(response, *attachment_params)
         target = response.message.source.room_object || response.message.source.user
         robot.chat_service.send_attachment(target, Lita::Adapters::Slack::Attachment.new(*attachment_params))
+      end
+
+      def reply_to_chat(response, *attachment_params)
+        case robot.config.robot.adapter
+        when :slack
+          reply_with_attachment(response, *attachment_params)
+        else
+          response.reply text
+        end
+
+        response.reply
       end
     end
     Lita.register_handler(Gitlab)
