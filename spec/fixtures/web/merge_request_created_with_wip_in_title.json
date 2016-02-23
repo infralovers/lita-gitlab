@@ -12,24 +12,24 @@
     "homepage": "http://gitlab.testing.com/root/pipeline-test"
   },
   "object_attributes": {
-    "id": 42,
+    "id": 43,
     "target_branch": "master",
     "source_branch": "improvement/WEB-4242-another-one",
     "source_project_id": 7,
     "author_id": 1,
     "assignee_id": null,
-    "title": "[WIP][Review] add file",
-    "created_at": "2016-02-18 12:29:32 UTC",
-    "updated_at": "2016-02-18 13:49:41 UTC",
+    "title": "[WIP] this is work in progress",
+    "created_at": "2016-02-18 14:03:32 UTC",
+    "updated_at": "2016-02-18 14:03:32 UTC",
     "milestone_id": null,
-    "state": "merged",
-    "merge_status": "can_be_merged",
+    "state": "opened",
+    "merge_status": "unchecked",
     "target_project_id": 7,
-    "iid": 1,
-    "description": "MR description",
+    "iid": 2,
+    "description": "",
     "position": 0,
     "locked_at": null,
-    "updated_by_id": 1,
+    "updated_by_id": null,
     "merge_error": null,
     "source": {
       "name": "pipeline-test",
@@ -48,17 +48,17 @@
       "visibility_level": 0
     },
     "last_commit": {
-      "id": "8d80b27b1b3fde241a1033ee1707aeacf27e5b07",
-      "message": "edit file",
-      "timestamp": "2016-02-18T12:35:13+00:00",
-      "url": "http://gitlab.testing.com/root/pipeline-test/commit/8d80b27b1b3fde241a1033ee1707aeacf27e5b07",
+      "id": "65fd25fe3982014afb3e147ab502b1c3fe2d538f",
+      "message": "another",
+      "timestamp": "2016-02-18T14:02:37+00:00",
+      "url": "http://gitlab.testing.com/root/pipeline-test/commit/65fd25fe3982014afb3e147ab502b1c3fe2d538f",
       "author": {
         "name": "Administrator",
         "email": "admin@example.com"
       }
     },
-    "work_in_progress": false,
-    "url": "http://gitlab.testing.com/root/pipeline-test/merge_requests/1",
-    "action": "merge"
+    "work_in_progress": true,
+    "url": "http://gitlab.testing.com/root/pipeline-test/merge_requests/2",
+    "action": "open"
   }
 }

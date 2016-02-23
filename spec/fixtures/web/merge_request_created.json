@@ -3,60 +3,62 @@
   "user": {
     "name": "Administrator",
     "username": "root",
-    "avatar_url": "http://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=40\u0026d=identicon"
+    "avatar_url": "http://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=40&d=identicon"
   },
   "repository": {
-    "name": "Diaspora",
-    "url": "git@example.com:mike/diasporadiaspora.git",
+    "name": "pipeline-test",
+    "url": "git@gitlab.testing.com:root/pipeline-test.git",
     "description": "",
-    "homepage": "http://example.com/mike/diaspora"
+    "homepage": "http://gitlab.testing.com/root/pipeline-test"
   },
   "object_attributes": {
-    "id": 99,
+    "id": 42,
     "target_branch": "master",
-    "source_branch": "ms-viewport",
-    "source_project_id": 14,
-    "author_id": 51,
-    "assignee_id": 6,
-    "title": "MS-Viewport",
-    "created_at": "2013-12-03T17:23:34Z",
-    "updated_at": "2013-12-03T17:23:34Z",
-    "st_commits": null,
-    "st_diffs": null,
+    "source_branch": "improvement/WEB-4242-another-one",
+    "source_project_id": 7,
+    "author_id": 1,
+    "assignee_id": null,
+    "title": "add file",
+    "created_at": "2016-02-18 12:29:32 UTC",
+    "updated_at": "2016-02-18 12:29:32 UTC",
     "milestone_id": null,
     "state": "opened",
     "merge_status": "unchecked",
-    "target_project_id": 14,
+    "target_project_id": 7,
     "iid": 1,
-    "description": "",
+    "description": "MR description",
+    "position": 0,
+    "locked_at": null,
+    "updated_by_id": null,
+    "merge_error": null,
     "source": {
-      "name": "awesome_project",
-      "ssh_url": "ssh://git@example.com/awesome_space/awesome_project.git",
-      "http_url": "http://example.com/awesome_space/awesome_project.git",
-      "web_url": "http://example.com/awesome_space/awesome_project",
-      "visibility_level": 20,
-      "namespace": "awesome_space"
+      "name": "pipeline-test",
+      "ssh_url": "git@gitlab.testing.com:root/pipeline-test.git",
+      "http_url": "http://gitlab.testing.com/root/pipeline-test.git",
+      "web_url": "http://gitlab.testing.com/root/pipeline-test",
+      "namespace": "root",
+      "visibility_level": 0
     },
     "target": {
-      "name": "awesome_project",
-      "ssh_url": "ssh://git@example.com/awesome_space/awesome_project.git",
-      "http_url": "http://example.com/awesome_space/awesome_project.git",
-      "web_url": "http://example.com/awesome_space/awesome_project",
-      "visibility_level": 20,
-      "namespace": "awesome_space"
+      "name": "pipeline-test",
+      "ssh_url": "git@gitlab.testing.com:root/pipeline-test.git",
+      "http_url": "http://gitlab.testing.com/root/pipeline-test.git",
+      "web_url": "http://gitlab.testing.com/root/pipeline-test",
+      "namespace": "root",
+      "visibility_level": 0
     },
     "last_commit": {
-      "id": "da1560886d4f094c3e6c9ef40349f7d38b5d27d7",
-      "message": "fixed readme",
-      "timestamp": "2012-01-03T23:36:29+02:00",
-      "url": "http://example.com/awesome_space/awesome_project/commits/da1560886d4f094c3e6c9ef40349f7d38b5d27d7",
+      "id": "3122099b3732a26ee008fc2527c44200c9e71172",
+      "message": "add file",
+      "timestamp": "2016-02-18T12:25:33+00:00",
+      "url": "http://gitlab.testing.com/root/pipeline-test/commit/3122099b3732a26ee008fc2527c44200c9e71172",
       "author": {
-        "name": "GitLab dev user",
-        "email": "gitlabdev@dv6700.(none)"
+        "name": "Administrator",
+        "email": "admin@example.com"
       }
     },
     "work_in_progress": false,
-    "url": "http://example.com/diaspora/merge_requests/1",
+    "url": "http://gitlab.testing.com/root/pipeline-test/merge_requests/1",
     "action": "open"
   }
 }

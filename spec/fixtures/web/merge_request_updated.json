@@ -1,1 +1,64 @@
-merge_request_updated.json
+{
+  "object_kind": "merge_request",
+  "user": {
+    "name": "Administrator",
+    "username": "root",
+    "avatar_url": "http://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=40&d=identicon"
+  },
+  "repository": {
+    "name": "pipeline-test",
+    "url": "git@gitlab.testing.com:root/pipeline-test.git",
+    "description": "",
+    "homepage": "http://gitlab.testing.com/root/pipeline-test"
+  },
+  "object_attributes": {
+    "id": 42,
+    "target_branch": "master",
+    "source_branch": "improvement/WEB-4242-another-one",
+    "source_project_id": 7,
+    "author_id": 1,
+    "assignee_id": null,
+    "title": "[WIP][Review] add file",
+    "created_at": "2016-02-18 12:29:32 UTC",
+    "updated_at": "2016-02-18 12:33:23 UTC",
+    "milestone_id": null,
+    "state": "opened",
+    "merge_status": "can_be_merged",
+    "target_project_id": 7,
+    "iid": 1,
+    "description": "MR description",
+    "position": 0,
+    "locked_at": null,
+    "updated_by_id": 1,
+    "merge_error": null,
+    "source": {
+      "name": "pipeline-test",
+      "ssh_url": "git@gitlab.testing.com:root/pipeline-test.git",
+      "http_url": "http://gitlab.testing.com/root/pipeline-test.git",
+      "web_url": "http://gitlab.testing.com/root/pipeline-test",
+      "namespace": "root",
+      "visibility_level": 0
+    },
+    "target": {
+      "name": "pipeline-test",
+      "ssh_url": "git@gitlab.testing.com:root/pipeline-test.git",
+      "http_url": "http://gitlab.testing.com/root/pipeline-test.git",
+      "web_url": "http://gitlab.testing.com/root/pipeline-test",
+      "namespace": "root",
+      "visibility_level": 0
+    },
+    "last_commit": {
+      "id": "3122099b3732a26ee008fc2527c44200c9e71172",
+      "message": "add file",
+      "timestamp": "2016-02-18T12:25:33+00:00",
+      "url": "http://gitlab.testing.com/root/pipeline-test/commit/3122099b3732a26ee008fc2527c44200c9e71172",
+      "author": {
+        "name": "Administrator",
+        "email": "admin@example.com"
+      }
+    },
+    "work_in_progress": false,
+    "url": "http://gitlab.testing.com/root/pipeline-test/merge_requests/1",
+    "action": "update"
+  }
+}

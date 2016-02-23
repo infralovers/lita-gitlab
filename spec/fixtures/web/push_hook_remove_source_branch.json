@@ -1,0 +1,23 @@
+{
+  "object_kind": "push",
+  "before": "8d80b27b1b3fde241a1033ee1707aeacf27e5b07",
+  "after": "0000000000000000000000000000000000000000",
+  "ref": "refs/heads/improvement/WEB-4242-another-one",
+  "checkout_sha": null,
+  "message": null,
+  "user_id": 1,
+  "user_name": "Administrator",
+  "user_email": "admin@example.com",
+  "project_id": 7,
+  "repository": {
+    "name": "pipeline-test",
+    "url": "git@gitlab.testing.com:root/pipeline-test.git",
+    "description": "",
+    "homepage": "http://gitlab.testing.com/root/pipeline-test",
+    "git_http_url": "http://gitlab.testing.com/root/pipeline-test.git",
+    "git_ssh_url": "git@gitlab.testing.com:root/pipeline-test.git",
+    "visibility_level": 0
+  },
+  "commits": [],
+  "total_commits_count": 0
+}
