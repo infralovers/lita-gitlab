@@ -29,6 +29,24 @@ module Lita
 
         chosen_job
       end
+
+      def self.build_merge_request_data(data)
+        {
+          'externalLitaEndpoint' => URI.join(Lita.config.handlers.gitlab.external_lita_endpoint, Lita::Handlers::Gitlab::GITLAB_HANDLER_PATH).to_s,
+          'gitlabTargetProjectId' => data[:object_attributes][:target_project_id],
+          'gitlabTargetBranch' => data[:object_attributes][:target_branch],
+          'gitlabSourceBranch' => data[:object_attributes][:source_branch],
+          'gitlabSourceRepoURL' => data[:object_attributes][:source][:ssh_url],
+          'gitlabSourceRepoName' => data[:object_attributes][:source][:name],
+          'gitlabBranch' => '',
+          'gitlabActionType' => 'MERGE',
+          'gitlabMergeRequestTitle' => data[:object_attributes][:title],
+          'gitlabMergeRequestId' => data[:object_attributes][:id],
+          'gitlabMergeRequestAssignee' => data[:object_attributes][:assignee_id],
+          'gitlabUserName' => data[:object_attributes][:last_commit][:author][:name],
+          'gitlabUserEmail' => data[:object_attributes][:last_commit][:author][:email]
+        }
+      end
     end
   end
 end
