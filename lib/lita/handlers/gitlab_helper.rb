@@ -22,10 +22,9 @@ module Lita
       def self.choose_job(content)
         chosen_job = content[:repository][:name]
 
-        # Is it a merge request?
         if content[:object_kind].include? 'merge_request'
           # If so, check it's title for a [review] tag and rename the job
-          chosen_job << '-review' if content[:object_attributes][:title].downcase.include? '[review]'
+          chosen_job << '-review' # if content[:object_attributes][:title].downcase.include? '[review]'
         end
 
         chosen_job
