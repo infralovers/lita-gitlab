@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Lita::Handlers::Gitlab, lita_handler: true, additional_lita_handlers: Lita::Handlers::Jenkins do
-  let(:default_job_name_prefix) { 'ruby-immmr-blog' }
+  let(:default_job_name_prefix) { 'test-job' }
   let(:default_job_name_build) { "#{default_job_name_prefix}-deploy" }
   let(:default_job_name_deploy) { "#{default_job_name_prefix}-test" }
   let(:artifact_review_id) { 'b-38' }
