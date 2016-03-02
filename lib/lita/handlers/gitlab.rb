@@ -29,8 +29,8 @@ module Lita
         # byebug
         @request = request
         Lita.logger.warn request.body.string
-        targets = (GitlabHelper.target_rooms(request.params['targets']) << config.debug_channel).uniq
-        #targets = [config.debug_channel]
+        targets = (GitlabHelper.target_rooms(request.params['targets']) << config.debug_channel).compact.uniq
+        # targets = [config.debug_channel]
         dispatch_trigger(request, targets: targets)
         # send_message_to_rooms(format_message(GitlabHelper.parse_data(request)), targets)
         # response.write('ok')
