@@ -25,7 +25,7 @@ module Lita
         jenkins_client.job.build(payload[:job_name], payload[:job_params])
       end
 
-      def receive(request, _response)
+      def receive(request, response)
         # byebug
         @request = request
         Lita.logger.warn request.body.string
@@ -33,7 +33,8 @@ module Lita
         # targets = [config.debug_channel]
         dispatch_trigger(request, targets: targets)
         # send_message_to_rooms(format_message(GitlabHelper.parse_data(request)), targets)
-        # response.write('ok')
+        # FIXXME: add a try catch, don't send the stacktrace back
+        response.write('ok')
       end
 
       route(/^artifact?\s+builds?/i,
